@@ -29,18 +29,21 @@ public class MemoryView extends GridView {
     private static final boolean D = true;
 	
     private enum State {
-    	NONE_UNCOVERED, ONE_UNCOVERED,
+    	NONE_UNCOVERED, ONE_UNCOVERED, TWO_UNCOVERED,
     }
     
+    private static final int UNCOVER_TIME = 500; //ms
+    
     private State mCurrentState = State.NONE_UNCOVERED;
-    private MemoryItem mFirstUncovered = null;
+    private static MemoryItem mFirstUncovered = null;
+    private static MemoryItem mSecondUncovered = null;
     private View mFirstView = null;
 	
 	private static String IMAGES_DIR = "memory_images";
 	private static String COVER_IMAGE = "cover.jpg";
 	private int mImageCount = 10;
 	private List<MemoryItem> mImageItems;
-	private Handler mHandler;
+	private int mPairsUncovered;
 
 	public MemoryView(Context context) {
 		super(context);
@@ -59,9 +62,7 @@ public class MemoryView extends GridView {
 	
 	private void init() {
 		
-		
-		
-		mHandler = new Handler(getContext().getMainLooper());
+		mPairsUncovered = 0;
 		
 		enumerateImages();
 		
@@ -96,11 +97,12 @@ public class MemoryView extends GridView {
 				if (!imageNames.contains(oneImage)) {
 					imageNames.add(oneImage);
 					mImageItems.add(new MemoryItem(images[index], loadImage(oneImage)));
+					mImageItems.add(new MemoryItem(images[index], loadImage(oneImage)));
 				}
 			}
 
-			List<MemoryItem> doubleItems = new ArrayList<MemoryItem>(mImageItems);
-			mImageItems.addAll(doubleItems);
+			//List<MemoryItem> doubleItems = new ArrayList<MemoryItem>(mImageItems);
+			//mImageItems.addAll(doubleItems);
 			Collections.shuffle(mImageItems);
 			
 			/*
@@ -123,79 +125,85 @@ public class MemoryView extends GridView {
 		}
 	}
 
+
+	static View first = null;
+	static View second = null;
+	
 	private OnItemClickListener mItemClickListener = new OnItemClickListener() {
 
+		
 		@Override
-		public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
-			MemoryAdapter.ViewHolder holder = (ViewHolder) v.getTag();
-			holder.coverImage.setVisibility(INVISIBLE);
+		public void onItemClick(AdapterView<?> parent, final View v, int position, long id) {
+			//MemoryAdapter.ViewHolder holder = (ViewHolder) v.getTag();
+			//holder.coverImage.setVisibility(INVISIBLE);
 			
-			if (State.NONE_UNCOVERED == mCurrentState) {
+			MemoryItem item = (MemoryItem) parent.getAdapter().getItem(position);
+			
+			if (D) { Log.d(TAG, "onItemClick: position: " + position + ", id: " + id + ", v: " + v + ", viewHolder: " + item.viewHolder); }
+			
+			
+			if (State.NONE_UNCOVERED == mCurrentState
+					&& item.active()) {
 				mCurrentState = State.ONE_UNCOVERED;
-				mFirstUncovered = (MemoryItem) parent.getAdapter().getItem(position);
-				mFirstView = mFirstUncovered.viewHolder.coverImage;
-			} else if (State.ONE_UNCOVERED == mCurrentState) {
-				mCurrentState = State.NONE_UNCOVERED;
+				//first = v.findViewById(R.id.memory_item_cover_image);
+				//first.setVisibility(INVISIBLE);
+				mFirstUncovered = item;
+				mFirstUncovered.hideCover();
+				//mFirstView = mFirstUncovered.viewHolder.coverImage;
+			} else if (State.ONE_UNCOVERED == mCurrentState 
+					&& item.active() 
+					&& !item.equals(mFirstUncovered)) {
+				mCurrentState = State.TWO_UNCOVERED;
+				//second = v.findViewById(R.id.memory_item_cover_image);
+				//second.setVisibility(INVISIBLE);
 				
-				final MemoryItem secondUncovered = (MemoryItem) parent.getAdapter().getItem(position);
-				final View secondView = secondUncovered.viewHolder.coverImage;
-				
-				if (!secondUncovered.equals(mFirstUncovered)) {
+				mSecondUncovered = item;
+				mSecondUncovered.hideCover();
+
+				if (!mSecondUncovered.isPair(mFirstUncovered)) {
 					// cover again after 500 ms
 					
-					/*
-					synchronized (MemoryView.this) {
-						try {
-							wait(500);
-						} catch (InterruptedException e) {
-							// if interrupted, just resume with covering
-						}	
-					}
 					
-					mFirstUncovered.showCover();
-					secondUncovered.showCover();
-					
-					*/
-					
-					boolean didPost = mHandler.postDelayed(new Runnable() {
+					boolean didPost = postDelayed(new Runnable() {
 						
 						@Override
 						public void run() {
 							
-							if (D) { Log.e(TAG, "postRunnable: running"); }
+							if (D) { Log.d(TAG, "postRunnable: running"); }
 							
-							//mFirstUncovered.showCover();
-							//mFirstUncovered = null;
-							//secondUncovered.showCover();
-							mFirstView.setVisibility(VISIBLE);
-							mFirstView = null;
-							secondView.setVisibility(VISIBLE);
-						}
-					}, 500);
-					
-					if (D) { Log.e(TAG, "postRunnable: " + didPost); }
-					
-					/*
-					new Thread(new Runnable() {
-						
-						@Override
-						public void run() {
-							try {
-								wait(500);
-							} catch (InterruptedException e) {
-								// if interrupted, just resume with covering
+							synchronized (MemoryView.this) {
+								mFirstUncovered.showCover();
+								mFirstUncovered = null;
+								mSecondUncovered.showCover();
+								mSecondUncovered = null;
+								
+								mCurrentState = State.NONE_UNCOVERED;	
 							}
-							
-							
-							
 						}
-					}).start();*/
+					}, UNCOVER_TIME);
+					
+					if (D) { Log.d(TAG, "postRunnable: " + didPost); }
+					
 				} else {
 					 // leave both uncovered
+					mFirstUncovered.pairMatched();
+					mFirstUncovered = null;
+					mSecondUncovered.pairMatched();
+					mSecondUncovered = null;
+					mCurrentState = State.NONE_UNCOVERED;
+					mPairsUncovered++;
 				}
+			} else if (!(State.TWO_UNCOVERED == mCurrentState)) {
+				if (null != mFirstUncovered) {
+					mFirstUncovered.showCover();
+					mFirstUncovered = null;
+				}
+				
+				mCurrentState = State.NONE_UNCOVERED;
 			}
 			
-            Toast.makeText(getContext(), "" + position, Toast.LENGTH_SHORT).show();
+			if (D) { Log.d(TAG, "onItemClick: first: " + mFirstUncovered + ", second: " + mSecondUncovered); }
+            //Toast.makeText(getContext(), "" + position, Toast.LENGTH_SHORT).show();
 		}
 	};
 }

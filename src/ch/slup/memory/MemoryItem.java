@@ -6,15 +6,17 @@ import ch.slup.memory.MemoryAdapter.ViewHolder;
 
 public class MemoryItem {
 	
+	private int position;
 	private String imageName;
 	private Bitmap image;
-	private boolean unCovered;
+	private boolean uncovered;
 	public ViewHolder viewHolder;
 	
 	public MemoryItem (String imageName, Bitmap image) {
 		this.imageName = imageName;
 		this.image = image;
-		this.unCovered = false;
+		this.uncovered = false;
+		this.position = 0;
 		this.viewHolder = null;
 	}
 	
@@ -26,16 +28,34 @@ public class MemoryItem {
 		return image;
 	}
 	
+	public void setPosition(int pos) {
+		this.position = pos;
+	}
+	
 	public void setViewHolder(ViewHolder viewHolder) {
 		this.viewHolder = viewHolder;
 	}
 	
-	public void hideCover() {
+	public void hideCover() {//hideCover(View v) {
+		//v.findViewById(R.id.memory_item_cover_image).setVisibility(View.INVISIBLE);
 		viewHolder.coverImage.setVisibility(View.INVISIBLE);
 	}
 	
-	public void showCover() {
+	public void showCover() {//showCover(View v) {
+		//v.findViewById(R.id.memory_item_cover_image).setVisibility(View.VISIBLE);
 		viewHolder.coverImage.setVisibility(View.VISIBLE);
+	}
+	
+	public void pairMatched() {
+		uncovered = true;
+	}
+	
+	public boolean active() {
+		return !uncovered;
+	}
+	
+	public boolean isPair(MemoryItem item) {
+	     return (imageName.equals(item.imageName));
 	}
 
 	@Override
@@ -48,8 +68,10 @@ public class MemoryItem {
 	     }
 
 	     MemoryItem that = (MemoryItem) o;
-	     return (imageName.equals(that.imageName) &&
-	             image.equals(that.image));
+	     return (//position == that.position &&
+	    		 imageName.equals(that.imageName) &&
+	             image.equals(that.image) &&
+	             viewHolder.equals(that.viewHolder));
 	}
 
 	@Override
@@ -60,6 +82,8 @@ public class MemoryItem {
 	     // Include a hash for each field.
 	     result = 31 * result + imageName.hashCode();
 	     result = 31 * result + image.hashCode();
+	     //result = 31 * result + position;
+	     result = 31 * result + viewHolder.hashCode();
 	     return result;
 	}
 
