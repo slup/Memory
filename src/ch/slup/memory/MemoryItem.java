@@ -2,19 +2,27 @@ package ch.slup.memory;
 
 import android.graphics.Bitmap;
 import android.view.View;
+import android.widget.ImageSwitcher;
 import ch.slup.memory.MemoryAdapter.ViewHolder;
 
 public class MemoryItem {
 	
+	public static int MEMORY_COVER_IMAGE_ID = 0;
+	public static int MEMORY_IMAGE_ID = 1;
+	
 	private int position;
 	private String imageName;
 	private Bitmap image;
+	private boolean active;
 	private boolean uncovered;
 	public ViewHolder viewHolder;
+	private ImageSwitcher mImageSwitcher;
+	
 	
 	public MemoryItem (String imageName, Bitmap image) {
 		this.imageName = imageName;
 		this.image = image;
+		this.active = false;
 		this.uncovered = false;
 		this.position = 0;
 		this.viewHolder = null;
@@ -38,20 +46,35 @@ public class MemoryItem {
 	
 	public void hideCover() {//hideCover(View v) {
 		//v.findViewById(R.id.memory_item_cover_image).setVisibility(View.INVISIBLE);
-		viewHolder.coverImage.setVisibility(View.INVISIBLE);
+		//viewHolder.coverImage.setVisibility(View.INVISIBLE);
+		mImageSwitcher.setDisplayedChild(MEMORY_IMAGE_ID);
 	}
 	
 	public void showCover() {//showCover(View v) {
 		//v.findViewById(R.id.memory_item_cover_image).setVisibility(View.VISIBLE);
-		viewHolder.coverImage.setVisibility(View.VISIBLE);
+		//viewHolder.coverImage.setVisibility(View.VISIBLE);
+		mImageSwitcher.setDisplayedChild(MEMORY_COVER_IMAGE_ID);
 	}
 	
-	public void pairMatched() {
+
+	public void uncover() {
 		uncovered = true;
 	}
 	
+	public void cover() {
+		uncovered = false;
+	}
+	
+	public boolean uncovered() {
+		return uncovered;
+	}
+	
+	public void pairMatched() {
+		active = true;
+	}
+	
 	public boolean active() {
-		return !uncovered;
+		return !active;
 	}
 	
 	public boolean isPair(MemoryItem item) {
@@ -90,5 +113,10 @@ public class MemoryItem {
 	@Override
 	public String toString() {
 		return getClass().getSimpleName() + ": " + imageName;
+	}
+
+	public void setSwitcher(ImageSwitcher switcher) {
+		// TODO Auto-generated method stub
+		mImageSwitcher = switcher;
 	}
 }

@@ -2,25 +2,19 @@ package ch.slup.memory;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.os.Handler;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.GridView;
-import android.widget.Toast;
-import ch.slup.memory.MemoryAdapter.ViewHolder;
 
 public class MemoryView extends GridView {
 	
@@ -44,6 +38,7 @@ public class MemoryView extends GridView {
 	private int mImageCount = 10;
 	private List<MemoryItem> mImageItems;
 	private int mPairsUncovered;
+	private MemoryAdapter mMemoryAdapter;
 
 	public MemoryView(Context context) {
 		super(context);
@@ -66,7 +61,9 @@ public class MemoryView extends GridView {
 		
 		enumerateImages();
 		
-        setAdapter(new MemoryAdapter(getContext(), mImageItems, loadImage(COVER_IMAGE)));
+		mMemoryAdapter = new MemoryAdapter(getContext(), mImageItems, loadImage(COVER_IMAGE));
+		
+        setAdapter(mMemoryAdapter);
 
         setOnItemClickListener(mItemClickListener);
 	}
@@ -129,9 +126,80 @@ public class MemoryView extends GridView {
 	static View first = null;
 	static View second = null;
 	
+	static
+	
 	private OnItemClickListener mItemClickListener = new OnItemClickListener() {
 
-		
+		@Override
+		public void onItemClick(AdapterView<?> parent, View view, int position,
+				long id) {
+			
+			mMemoryAdapter.uncover(position);
+			
+			MemoryItem item = (MemoryItem) parent.getAdapter().getItem(position);
+			
+			if (D) { Log.d(TAG, "onItemClick: position: " + position + ", id: " + id + ", v: " + view + ", viewHolder: " + item.viewHolder); }
+			
+			
+			if (State.NONE_UNCOVERED == mCurrentState
+					&& item.active()) {
+				mCurrentState = State.ONE_UNCOVERED;
+				mFirstUncovered = item;
+				mFirstUncovered.hideCover();
+			} else if (State.ONE_UNCOVERED == mCurrentState 
+					&& item.active() 
+					&& !item.equals(mFirstUncovered)) {
+				mCurrentState = State.TWO_UNCOVERED;
+				
+				mSecondUncovered = item;
+				mSecondUncovered.hideCover();
+
+				if (!mSecondUncovered.isPair(mFirstUncovered)) {
+					// cover again after 500 ms
+					
+					boolean didPost = postDelayed(new Runnable() {
+						
+						@Override
+						public void run() {
+							
+							if (D) { Log.d(TAG, "postRunnable: running"); }
+							
+							synchronized (MemoryView.this) {
+								mFirstUncovered.showCover();
+								mFirstUncovered = null;
+								mSecondUncovered.showCover();
+								mSecondUncovered = null;
+								
+								mCurrentState = State.NONE_UNCOVERED;	
+							}
+						}
+					}, UNCOVER_TIME);
+					
+					if (D) { Log.d(TAG, "postRunnable: " + didPost); }
+					
+				} else {
+					 // leave both uncovered
+					mFirstUncovered.pairMatched();
+					mFirstUncovered = null;
+					mSecondUncovered.pairMatched();
+					mSecondUncovered = null;
+					mCurrentState = State.NONE_UNCOVERED;
+					mPairsUncovered++;
+				}
+			} else if (!(State.TWO_UNCOVERED == mCurrentState)) {
+				if (null != mFirstUncovered) {
+					mFirstUncovered.showCover();
+					mFirstUncovered = null;
+				}
+				
+				mCurrentState = State.NONE_UNCOVERED;
+			}
+			
+			if (D) { Log.d(TAG, "onItemClick: first: " + mFirstUncovered + ", second: " + mSecondUncovered); }
+		}
+	};
+
+		/*
 		@Override
 		public void onItemClick(AdapterView<?> parent, final View v, int position, long id) {
 			//MemoryAdapter.ViewHolder holder = (ViewHolder) v.getTag();
@@ -205,5 +273,5 @@ public class MemoryView extends GridView {
 			if (D) { Log.d(TAG, "onItemClick: first: " + mFirstUncovered + ", second: " + mSecondUncovered); }
             //Toast.makeText(getContext(), "" + position, Toast.LENGTH_SHORT).show();
 		}
-	};
+		*/
 }

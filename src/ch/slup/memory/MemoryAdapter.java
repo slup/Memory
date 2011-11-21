@@ -6,11 +6,11 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.BaseAdapter;
+import android.widget.ImageSwitcher;
 import android.widget.ImageView;
 
 public class MemoryAdapter extends BaseAdapter {
@@ -64,6 +64,7 @@ public class MemoryAdapter extends BaseAdapter {
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
 		
+		/*
 		//if (D && (position == 0)) { Log.d(TAG, "getView: position: " + position + ", convertView: " + convertView + ", parent: " + parent); }
 		if (D && (position == 0)) { Log.d(TAG, "getView: position: " + position + ", convertView: " + convertView); }
 		
@@ -88,7 +89,7 @@ public class MemoryAdapter extends BaseAdapter {
 
         if (D && (position == 0)) { Log.d(TAG, "getView: position: " + position + ", convertView: " + convertView + ", holder: " + holder); }
         
-        return convertView;
+        return convertView;*/
 		/*
         ViewHolder holder;
         ImageSwitcher switcher;
@@ -120,6 +121,30 @@ public class MemoryAdapter extends BaseAdapter {
         switcher.set
         
         return switcher;*/
+		ImageSwitcher switcher;
+		MemoryItem item = mMemoryItems.get(position);
+		
+    	switcher = new ImageSwitcher(mContext);
+    	
+    	ImageView coverImage = new ImageView(mContext);
+    	coverImage.setImageBitmap(mCoverBitmap);
+    	switcher.addView(coverImage, MemoryItem.MEMORY_COVER_IMAGE_ID, mLayoutParams);
+    	
+    	ImageView image = new ImageView(mContext);
+    	image.setImageBitmap(item.getImage());
+    	switcher.addView(image, MemoryItem.MEMORY_IMAGE_ID, mLayoutParams);
+		
+    	if (item.uncovered()) {
+    		switcher.setDisplayedChild(MemoryItem.MEMORY_IMAGE_ID);
+    	} else {
+    		switcher.setDisplayedChild(MemoryItem.MEMORY_COVER_IMAGE_ID);	
+    	}
+    	
+    	
+    	item.setSwitcher(switcher);
+    	
+    	if (D) { Log.d(TAG, "getView: position: " + position + ", convertView: " + convertView + ", parent: " + parent); }
+    	return switcher;
 	}
 	
 	class ViewHolder {
@@ -152,5 +177,15 @@ public class MemoryAdapter extends BaseAdapter {
 		}
 		
 		
+	}
+
+	public void uncover(int position) {
+		mMemoryItems.get(position).uncover();
+		notifyDataSetChanged();
+	}
+	
+	public void cover(int position) {
+		mMemoryItems.get(position).cover();
+		notifyDataSetChanged();
 	}
 }
