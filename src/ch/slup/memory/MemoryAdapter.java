@@ -28,6 +28,9 @@ public class MemoryAdapter extends BaseAdapter {
 		mContext = context;
 		mMemoryItems = memoryItems;
 		
+		mCoverBitmap = coverImage;
+		
+		/*
 		int [] colors = new int [coverImage.getWidth() * coverImage.getHeight()];
 		
 		for (int i = 0; i < colors.length; i++) {
@@ -38,6 +41,7 @@ public class MemoryAdapter extends BaseAdapter {
 				coverImage.getWidth(), 
 				coverImage.getHeight(), 
 				Bitmap.Config.ARGB_8888);
+		*/
 		
 		mLayoutParams = new ViewGroup.LayoutParams(
 				ViewGroup.LayoutParams.MATCH_PARENT, 
@@ -77,19 +81,24 @@ public class MemoryAdapter extends BaseAdapter {
         	holder.image = (ImageView) convertView.findViewById(R.id.memory_item_image);
         	holder.coverImage = (ImageView) convertView.findViewById(R.id.memory_item_cover_image);
         	convertView.setTag(holder);
-        	item.setViewHolder(holder);
+        	//item.setViewHolder(holder);
         } else {
         	holder = (ViewHolder) convertView.getTag();
         }
         
-        item.setPosition(position);
+        //item.setPosition(position);
 
         holder.image.setImageBitmap(item.getImage());
         holder.coverImage.setImageBitmap(mCoverBitmap);
+        
+        if (item.uncovered()) {
+        	holder.coverImage.setVisibility(View.INVISIBLE);
+        }
 
         if (D && (position == 0)) { Log.d(TAG, "getView: position: " + position + ", convertView: " + convertView + ", holder: " + holder); }
         
-        return convertView;*/
+        return convertView;
+        */
 		/*
         ViewHolder holder;
         ImageSwitcher switcher;
@@ -121,10 +130,17 @@ public class MemoryAdapter extends BaseAdapter {
         switcher.set
         
         return switcher;*/
+		
+		
+		// IMAGESWITCHER SOLUTION
+		
 		ImageSwitcher switcher;
 		MemoryItem item = mMemoryItems.get(position);
 		
     	switcher = new ImageSwitcher(mContext);
+    	// animates the whole memoryview, not just the switcher :(
+    	//switcher.setInAnimation(AnimationUtils.loadAnimation(mContext, android.R.anim.fade_in));
+    	//switcher.setOutAnimation(AnimationUtils.loadAnimation(mContext, android.R.anim.fade_out));
     	
     	ImageView coverImage = new ImageView(mContext);
     	coverImage.setImageBitmap(mCoverBitmap);

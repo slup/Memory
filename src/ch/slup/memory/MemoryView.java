@@ -126,7 +126,8 @@ public class MemoryView extends GridView {
 	static View first = null;
 	static View second = null;
 	
-	static
+	static int firstPosition = -1;
+	static int secondPosition = -1;
 	
 	private OnItemClickListener mItemClickListener = new OnItemClickListener() {
 
@@ -134,7 +135,7 @@ public class MemoryView extends GridView {
 		public void onItemClick(AdapterView<?> parent, View view, int position,
 				long id) {
 			
-			mMemoryAdapter.uncover(position);
+			
 			
 			MemoryItem item = (MemoryItem) parent.getAdapter().getItem(position);
 			
@@ -144,16 +145,22 @@ public class MemoryView extends GridView {
 			if (State.NONE_UNCOVERED == mCurrentState
 					&& item.active()) {
 				mCurrentState = State.ONE_UNCOVERED;
+				firstPosition = position;
+				mMemoryAdapter.uncover(firstPosition);
 				mFirstUncovered = item;
-				mFirstUncovered.hideCover();
+				//mFirstUncovered.hideCover();
 			} else if (State.ONE_UNCOVERED == mCurrentState 
 					&& item.active() 
-					&& !item.equals(mFirstUncovered)) {
+					&& position != firstPosition
+					/*&& !item.equals(mFirstUncovered)*/) {
 				mCurrentState = State.TWO_UNCOVERED;
 				
+				secondPosition = position;
+				mMemoryAdapter.uncover(secondPosition);
 				mSecondUncovered = item;
-				mSecondUncovered.hideCover();
+				//mSecondUncovered.hideCover();
 
+				//if (secondPosition != firstPosition) {
 				if (!mSecondUncovered.isPair(mFirstUncovered)) {
 					// cover again after 500 ms
 					
@@ -165,9 +172,17 @@ public class MemoryView extends GridView {
 							if (D) { Log.d(TAG, "postRunnable: running"); }
 							
 							synchronized (MemoryView.this) {
+								/*
 								mFirstUncovered.showCover();
 								mFirstUncovered = null;
 								mSecondUncovered.showCover();
+								mSecondUncovered = null;
+								*/
+								mMemoryAdapter.cover(firstPosition);
+								firstPosition = -1;
+								mFirstUncovered = null;
+								mMemoryAdapter.cover(secondPosition);
+								secondPosition = -1;
 								mSecondUncovered = null;
 								
 								mCurrentState = State.NONE_UNCOVERED;	
@@ -179,18 +194,34 @@ public class MemoryView extends GridView {
 					
 				} else {
 					 // leave both uncovered
+					/*
 					mFirstUncovered.pairMatched();
 					mFirstUncovered = null;
 					mSecondUncovered.pairMatched();
 					mSecondUncovered = null;
+					*/
+					firstPosition = -1;
+					mFirstUncovered.pairMatched();
+					mFirstUncovered = null;
+					secondPosition = -1;
+					mSecondUncovered.pairMatched();
+					mSecondUncovered = null;
+					
 					mCurrentState = State.NONE_UNCOVERED;
+					
 					mPairsUncovered++;
 				}
 			} else if (!(State.TWO_UNCOVERED == mCurrentState)) {
-				if (null != mFirstUncovered) {
-					mFirstUncovered.showCover();
+				if (-1 != firstPosition) {
+					mMemoryAdapter.cover(firstPosition);
+					firstPosition = -1;
 					mFirstUncovered = null;
 				}
+
+				/*if (null != mFirstUncovered) {
+					mFirstUncovered.showCover();
+					mFirstUncovered = null;
+				}*/
 				
 				mCurrentState = State.NONE_UNCOVERED;
 			}

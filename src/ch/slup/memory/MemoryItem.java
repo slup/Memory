@@ -22,7 +22,7 @@ public class MemoryItem {
 	public MemoryItem (String imageName, Bitmap image) {
 		this.imageName = imageName;
 		this.image = image;
-		this.active = false;
+		this.active = true;
 		this.uncovered = false;
 		this.position = 0;
 		this.viewHolder = null;
@@ -70,11 +70,11 @@ public class MemoryItem {
 	}
 	
 	public void pairMatched() {
-		active = true;
+		active = false;
 	}
 	
 	public boolean active() {
-		return !active;
+		return active;
 	}
 	
 	public boolean isPair(MemoryItem item) {
