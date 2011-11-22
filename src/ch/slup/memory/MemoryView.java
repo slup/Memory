@@ -30,7 +30,7 @@ public class MemoryView extends GridView {
     }
     
     private static final int COVER_DELAY = 500; //ms
-    private static final int IMAGE_PAIRS = 4;
+    private static final int IMAGE_PAIRS = 16;
     
     private static String IMAGES_DIR = "memory_images";
 	private static String COVER_IMAGE = "cover.jpg";
@@ -83,6 +83,7 @@ public class MemoryView extends GridView {
 			
 			if (images.length < mImageCount) {
 				if (D) { Log.e(TAG, "Not enough images for all fields, reducing fields."); }
+				mImageCount = images.length;
 			}
 			
 			List<String> imageNames = new ArrayList<String>();
