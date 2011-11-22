@@ -6,6 +6,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
+import ch.slup.memory.MemoryView.OnGameFinishedListener;
+
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -44,6 +46,7 @@ public class MemoryView extends GridView {
 	
 	private List<MemoryItem> mImageItems;
 	private MemoryAdapter mMemoryAdapter;
+	private OnGameFinishedListener mListener;
 
 	public MemoryView(Context context) {
 		super(context);
@@ -58,6 +61,10 @@ public class MemoryView extends GridView {
 	public MemoryView(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
 		init();
+	}
+	
+	public void setOnGameFinishedListener(OnGameFinishedListener listener) {
+		mListener = listener;
 	}
 	
 	private void init() {
@@ -194,26 +201,41 @@ public class MemoryView extends GridView {
 	};
 
 	private void memoryFinished() {
-		Toast.makeText(getContext(), "Game won!", Toast.LENGTH_SHORT).show();
 		
-		AlertDialog.Builder dialog = new AlertDialog.Builder(getContext());
-		dialog.setTitle("Memory");
-		dialog.setMessage("Nochmal spielen?");
-		dialog.setPositiveButton("Ja", new DialogInterface.OnClickListener() {
-			
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				dialog.dismiss();
+		if (null != mListener) {
+			boolean newRound = mListener.onFinished();
+			if (newRound) {
 				reset();
 			}
-		});
-		dialog.setNegativeButton("Nein", new DialogInterface.OnClickListener() {
-			
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				dialog.cancel();
-			}
-		});
-		dialog.show();
+		} else {
+			AlertDialog.Builder dialog = new AlertDialog.Builder(getContext());
+			dialog.setTitle(R.string.game_finished_title);
+			dialog.setMessage(R.string.game_finished_text);
+			dialog.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+				
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					dialog.dismiss();
+					reset();
+				}
+			});
+			dialog.setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
+				
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					dialog.cancel();
+				}
+			});
+			dialog.show();
+		}
+	}
+	
+	public interface OnGameFinishedListener {
+		/**
+		 * Callback called when the player finished the game.
+		 * 
+		 * @return true if a new round should be started.
+		 */
+		public boolean onFinished();
 	}
 }

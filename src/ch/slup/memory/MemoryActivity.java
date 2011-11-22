@@ -14,16 +14,5 @@ public class MemoryActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.memory);
-        
-        /*
-        GridView gridview = (GridView) findViewById(R.id.gridview);
-        gridview.setAdapter(new MemoryAdapter(this));
-
-        gridview.setOnItemClickListener(new OnItemClickListener() {
-            public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
-                Toast.makeText(MemoryActivity.this, "" + position, Toast.LENGTH_SHORT).show();
-            }
-        });
-        */
     }
 }

@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="hello">Hello World, MemoryActivity!</string>
     <string name="app_name">Memory</string>
+    
+    <string name="game_finished_title">Memory</string>
+    <string name="game_finished_text">Play again?</string>
+    
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
 </resources>
