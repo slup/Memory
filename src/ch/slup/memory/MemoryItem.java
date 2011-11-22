@@ -1,9 +1,6 @@
 package ch.slup.memory;
 
 import android.graphics.Bitmap;
-import android.view.View;
-import android.widget.ImageSwitcher;
-import ch.slup.memory.MemoryAdapter.ViewHolder;
 
 public class MemoryItem {
 	
@@ -15,17 +12,13 @@ public class MemoryItem {
 	private Bitmap image;
 	private boolean active;
 	private boolean uncovered;
-	public ViewHolder viewHolder;
-	private ImageSwitcher mImageSwitcher;
-	
 	
 	public MemoryItem (String imageName, Bitmap image) {
 		this.imageName = imageName;
 		this.image = image;
 		this.active = true;
 		this.uncovered = false;
-		this.position = 0;
-		this.viewHolder = null;
+		this.position = -1;
 	}
 	
 	public String getImageName() {
@@ -36,27 +29,14 @@ public class MemoryItem {
 		return image;
 	}
 	
+	public int getPosition() {
+		return this.position;
+	}
+	
 	public void setPosition(int pos) {
 		this.position = pos;
 	}
 	
-	public void setViewHolder(ViewHolder viewHolder) {
-		this.viewHolder = viewHolder;
-	}
-	
-	public void hideCover() {//hideCover(View v) {
-		//v.findViewById(R.id.memory_item_cover_image).setVisibility(View.INVISIBLE);
-		//viewHolder.coverImage.setVisibility(View.INVISIBLE);
-		mImageSwitcher.setDisplayedChild(MEMORY_IMAGE_ID);
-	}
-	
-	public void showCover() {//showCover(View v) {
-		//v.findViewById(R.id.memory_item_cover_image).setVisibility(View.VISIBLE);
-		//viewHolder.coverImage.setVisibility(View.VISIBLE);
-		mImageSwitcher.setDisplayedChild(MEMORY_COVER_IMAGE_ID);
-	}
-	
-
 	public void uncover() {
 		uncovered = true;
 	}
@@ -69,7 +49,7 @@ public class MemoryItem {
 		return uncovered;
 	}
 	
-	public void pairMatched() {
+	public void deactivate() {
 		active = false;
 	}
 	
@@ -91,10 +71,9 @@ public class MemoryItem {
 	     }
 
 	     MemoryItem that = (MemoryItem) o;
-	     return (//position == that.position &&
+	     return (position == that.position &&
 	    		 imageName.equals(that.imageName) &&
-	             image.equals(that.image) &&
-	             viewHolder.equals(that.viewHolder));
+	             image.equals(that.image));
 	}
 
 	@Override
@@ -103,20 +82,14 @@ public class MemoryItem {
 	     int result = 17;
 
 	     // Include a hash for each field.
+	     result = 31 * result + position;
 	     result = 31 * result + imageName.hashCode();
 	     result = 31 * result + image.hashCode();
-	     //result = 31 * result + position;
-	     result = 31 * result + viewHolder.hashCode();
 	     return result;
 	}
 
 	@Override
 	public String toString() {
 		return getClass().getSimpleName() + ": " + imageName;
-	}
-
-	public void setSwitcher(ImageSwitcher switcher) {
-		// TODO Auto-generated method stub
-		mImageSwitcher = switcher;
 	}
 }
